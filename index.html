@@ -8,13 +8,51 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
+    <style>
+        /* Simple CSS for the user interaction button */
+        #splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #startButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+
     <script>
+        // Handle user interaction to unlock audio context
+        window.addEventListener('load', () => {
+            const splash = document.querySelector('#splash');
+            const startButton = document.querySelector('#startButton');
+            const video = document.querySelector("#promoVideo");
+
+            startButton.addEventListener('click', () => {
+                splash.style.display = 'none'; // Hide splash screen
+                video.play().then(() => {
+                    video.pause(); // Pre-warm the video so it can play with audio later
+                }).catch(err => console.log("Audio unlock failed:", err));
+            });
+        });
+
         AFRAME.registerComponent('video-handler', {
             init: function () {
                 var marker = this.el;
                 var video = document.querySelector("#promoVideo");
 
                 marker.addEventListener('targetFound', function () {
+                    video.muted = false; // Explicitly ensure it's unmuted
                     video.play();
                 });
 
@@ -27,16 +65,20 @@
 </head>
 <body>
 
+    <div id="splash">
+        <button id="startButton">Tap to Start AR with Sound</button>
+    </div>
+
     <a-scene mindar-image="imageTargetSrc: ./targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
         
         <a-assets>
-            <video id="promoVideo" src="./promo.mp4" preload="auto" loop="true" response-type="arraybuffer" crossorigin="anonymous" muted></video>
+            <video id="promoVideo" src="./promo.mp4" preload="auto" loop="true" response-type="arraybuffer" crossorigin="anonymous"></video>
         </a-assets>
         
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity mindar-image-target="targetIndex: 0" video-handler>
-            <a-video src="#promoVideo" position="0 0 0" width="1" height="0.56" rotation="0 0 0"></a-video>
+            <a-video src="#promoVideo" position="0 0 0" width="0.56" height="1" rotation="0 0 0"></a-video>
         </a-entity>
 
     </a-scene>
